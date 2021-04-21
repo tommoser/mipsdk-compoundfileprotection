@@ -180,8 +180,8 @@ namespace MipSdk_CompoundFileProtection
             foreach (var label in distinctLabels)
             {
                 // Build the temp file path from a plaintext template file. 
-                options.FileName = @"C:\mip\testfiles\compound\input\temp.txt";
-                options.OutputName = @"C:\mip\testfiles\compound\temp\" + label + ".txt";
+                options.FileName = @"D:\mip\testfiles\compound\input\temp.txt";
+                options.OutputName = @"D:\mip\testfiles\compound\temp\" + label + ".txt";
 
                 // Create a file handler and set the label for this template file. 
                 var handler = CreateFileHandler(options);
@@ -198,8 +198,12 @@ namespace MipSdk_CompoundFileProtection
             {
                 // Set the input, output file names, and the desired label id. 
                 options.FileName = item.Key;
-                options.OutputName = Path.Combine(@"C:\mip\testfiles\compound\temp\", Path.GetFileName(item.Key));
+                //options.OutputName = Path.Combine(@"D:\mip\testfiles\compound\input\", Path.GetFileName(item.Key));
                 options.LabelId = item.Value;
+
+                // Build new input and output paths, using the temp paths.
+                //options.FileName = options.OutputName;
+                options.OutputName = Path.Combine(@"D:\mip\testfiles\compound\output\", Path.GetFileName(item.Key));
 
                 // Create a file handler pointing to the input file.                 
                 var handler = CreateFileHandler(options);
@@ -207,29 +211,30 @@ namespace MipSdk_CompoundFileProtection
                 // Fetch the path to the desired input file. 
                 var fileTemplate = labelToProtectionFileTemplate[options.LabelId];
 
-                // Apply Label + Protection to File and store in temp directory. 
-                // This operation isn't complete and the file needs to have protection re-applied from the template PL
-                handler.SetLabel(engine.GetLabelById(options.LabelId), labelingOptions, protectionSettings);
-                var result = Task.Run(async () => await handler.CommitAsync(options.OutputName)).Result;
-
                 // Fetch "source" protectionhandler from file template. 
                 // The PL from this file will be used to create the protection on the other files of the same label. 
                 // NOTE: I didn't test with a non-protected label, so be sure to catch any exceptions here or validate that the file should be protected at all. 
                 var protectionHandlerTemplate = CreateFileHandler(fileTemplate).Protection;
 
-                // Build new input and output paths, using the temp paths.
-                options.FileName = options.OutputName;
-                options.OutputName = Path.Combine(@"C:\mip\testfiles\compound\output\", Path.GetFileName(item.Key));
+        
+                // Apply Label + Protection to File and store in temp directory. 
+                // This operation isn't complete and the file needs to have protection re-applied from the template PL
+                handler.SetLabel(engine.GetLabelById(options.LabelId), labelingOptions, protectionSettings);
+                handler.SetProtection(protectionHandlerTemplate);
+                var result = Task.Run(async () => await handler.CommitAsync(options.OutputName)).Result;
+                
+                
+                
 
                 // Create a handler for the final file output. 
-                var handler2 = CreateFileHandler(options);
+                //var handler2 = CreateFileHandler(options);
 
                 // Set protection using handler from template protection handler.
-                handler2.SetProtection(protectionHandlerTemplate);
+                //handler2.SetProtection(protectionHandlerTemplate);
 
                 // Commit
                 // At this point, you should have a file that is protected with the same PL as the template. 
-                result = Task.Run(async () => await handler2.CommitAsync(options.OutputName)).Result;
+                //result = Task.Run(async () => await handler2.CommitAsync(options.OutputName)).Result;
 
                 // dump content Id for new item to validate
                 // You should have a set of Content IDs and Label Ids. They should match across files (the same label across files will have the same content Id). 

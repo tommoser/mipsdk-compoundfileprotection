@@ -23,7 +23,7 @@ namespace MipSdk_CompoundFileProtection
 
             Action action = new Action(appInfo);
 
-            string rootPath = @"C:\mip\testfiles\compound\input";
+            string rootPath = @"D:\mip\testfiles\compound\input";
             Random rand = new Random();
 
             // Build a mapping of label to file. 
